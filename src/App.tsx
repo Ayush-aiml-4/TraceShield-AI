@@ -4,6 +4,7 @@ import {
   ExecutionBackend,
   PipelineResult,
   PolicyProfileId,
+  RiskStatus,
 } from './types';
 import { runTraceShieldPipeline } from './core/pipeline';
 import { Header } from './components/Header';
@@ -44,9 +45,30 @@ function MainAppContent() {
   const [showReasoningDrawer, setShowReasoningDrawer] = useState<boolean>(false);
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
 
+  // Architectural gold atmosphere motif accessibility toggle (persisted)
+  const [goldAtmosphereEnabled, setGoldAtmosphereEnabled] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('traceshield_gold_atmosphere');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const handleToggleGoldAtmosphere = () => {
+    setGoldAtmosphereEnabled((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('traceshield_gold_atmosphere', String(next));
+      } catch {}
+      return next;
+    });
+  };
+
   const validationReport = useMemo(() => generateValidationReport(), []);
 
   // Pipeline execution state
+  const [executionCount, setExecutionCount] = useState<number>(1);
   const [result, setResult] = useState<PipelineResult>(() =>
     runTraceShieldPipeline({
       text: DEMO_SCENARIOS[0].text,
@@ -68,6 +90,7 @@ function MainAppContent() {
       simulateNpu: executionBackend === ExecutionBackend.QNN_NPU,
     });
     setResult(res);
+    setExecutionCount((prev) => prev + 1);
   }, [inputText, sourceType, destinationId, policyId, executionBackend]);
 
   const handleSelectScenario = (scenario: DemoScenario) => {
@@ -130,7 +153,14 @@ function MainAppContent() {
       );
     }
 
-    return <AdminPortal onBackToWorkspace={() => setActiveView('workspace')} />;
+    return (
+      <AdminPortal
+        onBackToWorkspace={() => setActiveView('workspace')}
+        telemetry={result.telemetry}
+        executionCount={executionCount}
+        findingsCount={result.findings_metadata.length}
+      />
+    );
   }
 
   return (
@@ -160,6 +190,8 @@ function MainAppContent() {
         onNavigateAdmin={() => setActiveView('admin')}
         onNavigateLogin={() => setActiveView('login')}
         onNavigateRegister={() => setActiveView('register')}
+        goldAtmosphereEnabled={goldAtmosphereEnabled}
+        onToggleGoldAtmosphere={handleToggleGoldAtmosphere}
       />
 
       {/* Main Container: Open yet connected visual hierarchy */}
@@ -196,13 +228,26 @@ function MainAppContent() {
           </div>
 
           {/* Security Decision Hero (Right, 5 cols) */}
-          <div className="lg:col-span-5">
+          <div
+            className="lg:col-span-5 relative group/decision-hero"
+            data-risk-status={result.risk.status}
+          >
+            {/* Gold Architectural Brand Atmosphere Motif (controllable via accessibility toggle) */}
+            <div
+              className={`gold-architectural-motif absolute -inset-2.5 sm:-inset-3.5 -z-10 transition-opacity duration-300 ${
+                goldAtmosphereEnabled ? 'opacity-100' : 'opacity-0 pointer-events-none hidden'
+              } ${result.risk.status === RiskStatus.BLOCK ? 'is-blocked' : ''}`}
+              data-risk-status={result.risk.status}
+              aria-hidden="true"
+            />
             <DecisionHero
               risk={result.risk}
               releaseStatus={result.release_status}
               destinationDisplayName={currentDestination.display_name}
               policyDisplayName={currentPolicy.display_name}
               onOpenReasoning={() => setShowReasoningDrawer(true)}
+              goldAtmosphereEnabled={goldAtmosphereEnabled}
+              onToggleGoldAtmosphere={handleToggleGoldAtmosphere}
             />
           </div>
         </div>

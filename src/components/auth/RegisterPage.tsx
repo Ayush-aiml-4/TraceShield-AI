@@ -112,16 +112,16 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({
               </span>
             </h1>
             <p className="text-sm text-white/35 leading-relaxed max-w-xs font-light">
-              Deploy military-grade on-device AI evidence security for your entire security team.
+              Deploy privacy-first on-device evidence security for your entire security team.
             </p>
           </div>
 
           {/* Feature pills */}
           <div className="flex flex-col gap-2.5">
             {[
-              'End-to-end on-device processing',
-              'Zero data sent to external servers',
-              'Qualcomm Hexagon NPU acceleration',
+              'End-to-end local pipeline execution',
+              'Application-boundary local processing',
+              'Snapdragon X Series target runtime',
               'Multi-policy security engine',
             ].map(f => (
               <div key={f} className="flex items-center gap-2.5 text-xs text-white/40">
@@ -270,7 +270,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({
               </div>
               <p className="text-xs text-white/20 leading-relaxed">
                 {role === 'admin'
-                  ? 'Full portal access: NPU config, policies, team management & branding.'
+                  ? 'Full portal access: target runtime config, policies, team management & branding.'
                   : 'Evidence scanning, redaction, risk assessment & verification tools.'}
               </p>
             </div>

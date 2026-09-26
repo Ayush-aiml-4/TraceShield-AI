@@ -1,7 +1,8 @@
 import React from 'react';
 import { ReleaseStatus, RiskAssessment, RiskStatus } from '../types';
-import { ShieldBan, ShieldCheck, ArrowRight, HelpCircle, Shield, ChevronRight, AlertOctagon } from 'lucide-react';
+import { ShieldBan, ShieldCheck, ArrowRight, HelpCircle, Shield, ChevronRight, AlertOctagon, Sparkles } from 'lucide-react';
 import { InfoPopover } from './InfoPopover';
+import { GoldArchitecturalFlow } from './GoldArchitecturalFlow';
 
 interface DecisionHeroProps {
   risk: RiskAssessment;
@@ -9,6 +10,8 @@ interface DecisionHeroProps {
   destinationDisplayName: string;
   policyDisplayName: string;
   onOpenReasoning: () => void;
+  goldAtmosphereEnabled?: boolean;
+  onToggleGoldAtmosphere?: () => void;
 }
 
 export const DecisionHero: React.FC<DecisionHeroProps> = ({
@@ -17,6 +20,8 @@ export const DecisionHero: React.FC<DecisionHeroProps> = ({
   destinationDisplayName,
   policyDisplayName,
   onOpenReasoning,
+  goldAtmosphereEnabled = true,
+  onToggleGoldAtmosphere,
 }) => {
   const getDecisionConfig = (status: RiskStatus) => {
     switch (status) {
@@ -79,21 +84,24 @@ export const DecisionHero: React.FC<DecisionHeroProps> = ({
   const Icon = config.icon;
 
   return (
-    <div className="relative group">
+    <div className="relative group DecisionHero">
+      {/* Restrained flowing gold architectural motif behind the Decision Hero */}
+      <GoldArchitecturalFlow enabled={goldAtmosphereEnabled} />
+
       {/* Restrained local atmospheric glow behind the primary hero */}
       <div
-        className={`absolute -inset-1 rounded-3xl bg-gradient-to-b ${config.localAmbientGlow} blur-xl pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity duration-300`}
+        className={`absolute -inset-1 rounded-3xl bg-gradient-to-b ${config.localAmbientGlow} blur-xl pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity duration-300 z-0`}
       />
 
       {/* Hero Glass Surface: Level 3 Elevated Hero Glass */}
       <div
-        className={`relative overflow-hidden rounded-2xl border ${config.borderClass} ${config.bgClass} ${config.accentGlow} p-6 lg:p-7 backdrop-blur-3xl transition-all duration-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]`}
+        className={`relative z-10 overflow-hidden rounded-2xl border ${config.borderClass} ${config.bgClass} ${config.accentGlow} p-6 lg:p-7 backdrop-blur-3xl transition-all duration-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]`}
       >
         {/* Subtle white edge highlight across the top inner border */}
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
         {/* Header bar */}
-        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3.5">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3.5 gap-2">
           <div className="flex items-center gap-2.5">
             <div className="flex h-6 w-6 items-center justify-center rounded-lg border border-white/10 bg-[#141A23] text-[#B7C0CB]">
               <Shield className="h-3.5 w-3.5" />
@@ -107,18 +115,43 @@ export const DecisionHero: React.FC<DecisionHeroProps> = ({
             />
           </div>
 
-          {/* Final Release Gating Badge */}
-          <div
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 font-sans text-xs font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-colors ${
-              releaseStatus === ReleaseStatus.BLOCKED
-                ? 'border-rose-500/50 bg-[#250810] text-rose-200'
-                : releaseStatus === ReleaseStatus.ALLOWED
-                ? 'border-emerald-500/50 bg-[#0C2417] text-emerald-200'
-                : 'border-amber-500/50 bg-[#261A0A] text-amber-200'
-            }`}
-          >
-            <span className="opacity-60 text-[10px] font-mono">RELEASE:</span>
-            <span>{releaseStatus}</span>
+          <div className="flex items-center gap-2">
+            {/* Quick accessibility toggle for the gold atmosphere motif */}
+            {onToggleGoldAtmosphere && (
+              <button
+                type="button"
+                onClick={onToggleGoldAtmosphere}
+                role="switch"
+                aria-checked={goldAtmosphereEnabled}
+                title={`Architectural Atmosphere Motif: ${goldAtmosphereEnabled ? 'Enabled' : 'Disabled'} (Accessibility Control)`}
+                aria-label={`Toggle architectural gold atmosphere motif. Currently ${goldAtmosphereEnabled ? 'enabled' : 'disabled'}`}
+                className={`hidden sm:inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-sans font-medium transition cursor-pointer border ${
+                  goldAtmosphereEnabled
+                    ? 'border-amber-400/30 bg-amber-950/25 text-amber-200/90 hover:bg-amber-950/40'
+                    : 'border-white/10 bg-white/5 text-[#7D8794] hover:bg-white/10 hover:text-[#B7C0CB]'
+                }`}
+              >
+                <Sparkles className={`h-3 w-3 ${goldAtmosphereEnabled ? 'text-amber-400' : 'text-[#7D8794]'}`} />
+                <span className="text-[10px] uppercase tracking-wider">Aura</span>
+                <span className={`text-[9px] font-mono px-1 rounded ${goldAtmosphereEnabled ? 'bg-amber-400/20 text-amber-300' : 'bg-white/5 text-[#7D8794]'}`}>
+                  {goldAtmosphereEnabled ? 'ON' : 'OFF'}
+                </span>
+              </button>
+            )}
+
+            {/* Final Release Gating Badge */}
+            <div
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 font-sans text-xs font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-colors ${
+                releaseStatus === ReleaseStatus.BLOCKED
+                  ? 'border-rose-500/50 bg-[#250810] text-rose-200'
+                  : releaseStatus === ReleaseStatus.ALLOWED
+                  ? 'border-emerald-500/50 bg-[#0C2417] text-emerald-200'
+                  : 'border-amber-500/50 bg-[#261A0A] text-amber-200'
+              }`}
+            >
+              <span className="opacity-60 text-[10px] font-mono">RELEASE:</span>
+              <span>{releaseStatus}</span>
+            </div>
           </div>
         </div>
 

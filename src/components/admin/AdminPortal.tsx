@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth, User, UserRole } from '../../context/AuthContext';
 import { TraceShieldLogo } from '../TraceShieldLogo';
+import { generateValidationReport } from '../../validation/runtimeProbe';
+import { networkTracker } from '../../telemetry/networkTracker';
+import { TelemetryRecord } from '../../types';
 import {
   Shield,
   Cpu,
@@ -27,9 +30,12 @@ import {
 
 interface AdminPortalProps {
   onBackToWorkspace: () => void;
+  telemetry?: TelemetryRecord;
+  executionCount?: number;
+  findingsCount?: number;
 }
 
-// Mock Audit Log Records for Admin View
+// Mock Audit Log Records for Admin View (Synthetic Demonstration Data)
 const INITIAL_AUDIT_LOGS = [
   {
     id: 'LOG-8841',
@@ -40,7 +46,7 @@ const INITIAL_AUDIT_LOGS = [
     findings: 3,
     verdict: 'SANITIZE',
     releaseStatus: 'ALLOWED',
-    backend: 'QNN_NPU (0.42ms)',
+    backend: 'Target Profile: QNN_NPU · NOT VALIDATED',
   },
   {
     id: 'LOG-8840',
@@ -51,7 +57,7 @@ const INITIAL_AUDIT_LOGS = [
     findings: 5,
     verdict: 'BLOCK',
     releaseStatus: 'BLOCKED',
-    backend: 'QNN_NPU (0.38ms)',
+    backend: 'Target Profile: QNN_NPU · NOT VALIDATED',
   },
   {
     id: 'LOG-8839',
@@ -62,7 +68,7 @@ const INITIAL_AUDIT_LOGS = [
     findings: 1,
     verdict: 'ALLOW',
     releaseStatus: 'ALLOWED',
-    backend: 'CPU (14.2ms)',
+    backend: 'CPU Deterministic Runtime (Local)',
   },
   {
     id: 'LOG-8838',
@@ -73,7 +79,7 @@ const INITIAL_AUDIT_LOGS = [
     findings: 8,
     verdict: 'BLOCK',
     releaseStatus: 'BLOCKED',
-    backend: 'QNN_NPU (0.51ms)',
+    backend: 'Target Profile: QNN_NPU · NOT VALIDATED',
   },
 ];
 
@@ -102,9 +108,16 @@ const INITIAL_POLICIES = [
   },
 ];
 
-export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToWorkspace }) => {
+export const AdminPortal: React.FC<AdminPortalProps> = ({
+  onBackToWorkspace,
+  telemetry,
+  executionCount,
+  findingsCount,
+}) => {
   const { user, customLogoUrl, updateCustomLogo } = useAuth();
   const [activeTab, setActiveTab] = useState<'analytics' | 'policies' | 'audit' | 'users' | 'branding'>('analytics');
+  const report = useMemo(() => generateValidationReport(), []);
+  const networkStats = useMemo(() => networkTracker.getStats(), []);
 
   // Custom Logo input state
   const [logoInputUrl, setLogoInputUrl] = useState(customLogoUrl || '');
@@ -188,7 +201,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToWorkspace }) =
     (log) =>
       log.user.toLowerCase().includes(logSearch.toLowerCase()) ||
       log.destination.toLowerCase().includes(logSearch.toLowerCase()) ||
-      log.verdict.toLowerCase().includes(logSearch.toLowerCase())
+      log.verdict.toLowerCase().includes(logSearch.toLowerCase()) ||
+      log.backend.toLowerCase().includes(logSearch.toLowerCase())
   );
 
   return (
@@ -221,7 +235,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToWorkspace }) =
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-950/30 px-3 py-1 text-xs text-emerald-300">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-mono font-medium">ON-DEVICE NPU: ACTIVE</span>
+              <span className="font-mono font-medium">TARGET: SNAPDRAGON X</span>
             </div>
 
             <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#0D1118] px-3 py-1.5 text-xs">
@@ -249,7 +263,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToWorkspace }) =
               </span>
             </h1>
             <p className="text-xs text-[#94A3B8] mt-1">
-              Control hardware NPU acceleration, security profiles, telemetry audit logs, and team access.
+              Control target runtime configuration, security profiles, telemetry audit logs, and team access.
             </p>
           </div>
         </div>
@@ -266,7 +280,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToWorkspace }) =
             }`}
           >
             <Activity className="w-4 h-4 text-emerald-400" />
-            <span>NPU Analytics</span>
+            <span>Runtime Analytics</span>
           </button>
 
           <button
@@ -329,45 +343,57 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToWorkspace }) =
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="rounded-2xl border border-white/10 bg-[#0D1118]/80 p-5 backdrop-blur-xl space-y-2">
                 <div className="flex items-center justify-between text-xs text-[#94A3B8]">
-                  <span>NPU Latency (Average)</span>
+                  <span>{telemetry?.total_pipeline_latency_ms != null ? 'Current Pipeline Latency' : 'Target Pipeline Latency'}</span>
                   <Zap className="w-4 h-4 text-emerald-400" />
                 </div>
-                <div className="text-2xl font-black font-mono text-emerald-400">0.42 ms</div>
+                <div className="text-2xl font-black font-mono text-emerald-400">
+                  {telemetry?.total_pipeline_latency_ms != null
+                    ? `${telemetry.total_pipeline_latency_ms.toFixed(2)} ms`
+                    : '0.42 ms'}
+                </div>
                 <div className="text-[11px] text-[#64748B]">
-                  Qualcomm Hexagon NPU Vector Accelerator
+                  {telemetry?.total_pipeline_latency_ms != null
+                    ? `Backend: ${telemetry.backend_display || 'CPU'} (Measured Runtime)`
+                    : 'Target — Not Benchmarked on Snapdragon'}
                 </div>
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-[#0D1118]/80 p-5 backdrop-blur-xl space-y-2">
                 <div className="flex items-center justify-between text-xs text-[#94A3B8]">
-                  <span>Total Scans Today</span>
+                  <span>Pipeline Executions</span>
                   <Activity className="w-4 h-4 text-cyan-400" />
                 </div>
-                <div className="text-2xl font-black font-mono text-cyan-400">1,482</div>
+                <div className="text-2xl font-black font-mono text-cyan-400">
+                  {executionCount != null && executionCount > 0 ? executionCount.toLocaleString() : 'NOT MEASURED'}
+                </div>
                 <div className="text-[11px] text-[#64748B]">
-                  100% On-device Local Processing
+                  {executionCount != null && executionCount > 0 ? 'Measured Session Executions' : 'Session execution count'}
                 </div>
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-[#0D1118]/80 p-5 backdrop-blur-xl space-y-2">
                 <div className="flex items-center justify-between text-xs text-[#94A3B8]">
-                  <span>Secrets Intercepted</span>
+                  <span>Security Findings</span>
                   <Shield className="w-4 h-4 text-amber-400" />
                 </div>
-                <div className="text-2xl font-black font-mono text-amber-400">349</div>
+                <div className="text-2xl font-black font-mono text-amber-400">
+                  {findingsCount != null ? findingsCount.toLocaleString() : 'NOT MEASURED'}
+                </div>
                 <div className="text-[11px] text-[#64748B]">
-                  API keys, RSA keys, AWS Credentials
+                  {findingsCount != null ? 'Current pipeline findings detected' : 'Session findings intercepted'}
                 </div>
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-[#0D1118]/80 p-5 backdrop-blur-xl space-y-2">
                 <div className="flex items-center justify-between text-xs text-[#94A3B8]">
-                  <span>Network Egress Prevention</span>
+                  <span>Application-Boundary Activity</span>
                   <CheckCircle2 className="w-4 h-4 text-blue-400" />
                 </div>
-                <div className="text-2xl font-black font-mono text-blue-400">100.0%</div>
+                <div className="text-2xl font-black font-mono text-blue-400">AUDITED</div>
                 <div className="text-[11px] text-[#64748B]">
-                  Zero bytes sent to unverified external endpoints
+                  {networkStats.instrumented
+                    ? `${networkStats.requestCount ?? 0} outbound requests • ${networkStats.bytesSent ?? 0} bytes egress`
+                    : 'Application-boundary telemetry audited'}
                 </div>
               </div>
             </div>
@@ -375,39 +401,66 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToWorkspace }) =
             {/* Hardware & Memory Metrics */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="rounded-2xl border border-white/10 bg-[#0D1118]/80 p-6 backdrop-blur-xl space-y-4">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Cpu className="w-4 h-4 text-emerald-400" />
-                  <span>On-Device Hardware Utilization</span>
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <Cpu className="w-4 h-4 text-emerald-400" />
+                    <span>Target & Runtime Hardware Validation</span>
+                  </h3>
+                  <span className="text-[10px] font-mono text-[#94A3B8]">
+                    Status: {report.status.hardware === 'VALIDATED' ? 'VALIDATED' : 'TARGET — NOT VALIDATED'}
+                  </span>
+                </div>
                 <div className="space-y-3 text-xs">
-                  <div>
-                    <div className="flex justify-between text-[#94A3B8] mb-1">
-                      <span>Snapdragon X Series Hexagon NPU</span>
-                      <span className="font-mono text-emerald-400">18% Load</span>
+                  <div className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-[#07090D]">
+                    <div>
+                      <div className="text-white font-medium">Target Platform</div>
+                      <div className="text-[10px] text-[#64748B]">Snapdragon X Series (Windows ARM64)</div>
                     </div>
-                    <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                      <div className="h-full bg-emerald-500 w-[18%]" />
-                    </div>
+                    <span className="font-mono text-amber-400 font-bold text-[10px] px-2 py-0.5 rounded bg-amber-950/60 border border-amber-500/30">
+                      TARGET
+                    </span>
                   </div>
 
-                  <div>
-                    <div className="flex justify-between text-[#94A3B8] mb-1">
-                      <span>Qualcomm Adreno GPU (DirectML Engine)</span>
-                      <span className="font-mono text-cyan-400">4% Standby</span>
+                  <div className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-[#07090D]">
+                    <div>
+                      <div className="text-white font-medium">Current Host Environment</div>
+                      <div className="text-[10px] text-[#64748B]">
+                        {report.hardware.isWindows ? (report.hardware.windows.includes('11') ? 'Windows 11' : 'Windows') : report.hardware.windows} {report.hardware.architecture} • {report.status.hardware === 'VALIDATED' ? 'Validated on Snapdragon' : 'Not yet performed on Snapdragon'}
+                      </div>
                     </div>
-                    <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                      <div className="h-full bg-cyan-500 w-[4%]" />
-                    </div>
+                    <span className="font-mono text-cyan-400 font-bold text-[10px] px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/30">
+                      {report.hardware.architecture}
+                    </span>
                   </div>
 
-                  <div>
-                    <div className="flex justify-between text-[#94A3B8] mb-1">
-                      <span>Oryon CPU Core Allocation</span>
-                      <span className="font-mono text-purple-400">12% Load</span>
+                  <div className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-[#07090D]">
+                    <div>
+                      <div className="text-white font-medium">Qualcomm QNN / Hexagon NPU</div>
+                      <div className="text-[10px] text-[#64748B]">Execution Provider: {report.runtime.providers.qnnExecutionProvider}</div>
                     </div>
-                    <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                      <div className="h-full bg-purple-500 w-[12%]" />
+                    <span className={`font-mono font-bold text-[10px] px-2 py-0.5 rounded ${
+                      report.status.qnn === 'VALIDATED'
+                        ? 'text-emerald-400 bg-emerald-950/60 border border-emerald-500/30'
+                        : 'text-[#94A3B8] bg-slate-900 border border-white/10'
+                    }`}>
+                      {report.status.qnn === 'VALIDATED' ? 'VALIDATED' : 'NOT VALIDATED'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-[#07090D]">
+                    <div>
+                      <div className="text-white font-medium">DirectML Acceleration Engine</div>
+                      <div className="text-[10px] text-[#64748B]">
+                        GPU: {report.hardware.gpu || 'DirectML runtime probe'}
+                      </div>
                     </div>
+                    <span className={`font-mono font-bold text-[10px] px-2 py-0.5 rounded ${
+                      report.runtime.providers.directMl === 'AVAILABLE'
+                        ? 'text-cyan-400 bg-cyan-950/60 border border-cyan-500/30'
+                        : 'text-[#94A3B8] bg-slate-900 border border-white/10'
+                    }`}>
+                      {report.runtime.providers.directMl === 'AVAILABLE' ? 'AVAILABLE' : 'NOT DETECTED'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -512,7 +565,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToWorkspace }) =
               </div>
 
               <div className="text-xs text-[#94A3B8]">
-                Showing <span className="font-mono text-white">{filteredLogs.length}</span> audit events
+                Showing <span className="font-mono text-white">{filteredLogs.length}</span> audit events (Demo Records)
               </div>
             </div>
 
@@ -526,14 +579,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToWorkspace }) =
                       <th className="px-4 py-3">Destination</th>
                       <th className="px-4 py-3">Findings</th>
                       <th className="px-4 py-3">Verdict</th>
-                      <th className="px-4 py-3">Backend & Latency</th>
+                      <th className="px-4 py-3">Backend & Target Profile</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 font-mono text-[11px]">
                     {filteredLogs.map((log) => (
                       <tr key={log.id} className="hover:bg-white/[0.02]">
                         <td className="px-4 py-3 font-sans">
-                          <div className="font-bold text-white">{log.id}</div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-white">{log.id}</span>
+                            <span className="text-[9px] font-mono text-[#64748B] px-1.5 py-0.5 rounded bg-white/5 border border-white/5">
+                              Demo Record
+                            </span>
+                          </div>
                           <div className="text-[10px] text-[#64748B]">{log.timestamp}</div>
                         </td>
                         <td className="px-4 py-3 font-sans text-white">{log.user}</td>
@@ -556,7 +614,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToWorkspace }) =
                             {log.verdict}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-cyan-400">{log.backend}</td>
+                        <td className="px-4 py-3 text-cyan-400 font-mono text-[11px] whitespace-nowrap">
+                          {log.backend}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

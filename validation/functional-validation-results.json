@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-23T10:09:46.976Z",
+  "timestamp": "2026-09-25T08:24:57.499Z",
   "suiteName": "TraceShield AI 2.0 Functional Validation & Security Test Harness",
   "totalTests": 29,
   "passedCount": 29,
@@ -263,7 +263,7 @@
       "suite": "Telemetry Integrity",
       "status": "PASS",
       "expected": "Real latencies measured via performance.now() across all executed stages",
-      "actual": "Prefilter: 0.19ms, Sanitize: 0.1ms, Verify: 0.18ms, Total: 0.4ms",
+      "actual": "Prefilter: 0.18ms, Sanitize: 0.1ms, Verify: 0.16ms, Total: 0.4ms",
       "details": "Assures all telemetry latency values are directly measured and not hardcoded mock numbers.",
       "relevantModule": "src/core/pipeline.ts"
     },

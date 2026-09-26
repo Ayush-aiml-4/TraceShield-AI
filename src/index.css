@@ -62,3 +62,209 @@
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12) 30%, rgba(255, 255, 255, 0.16) 50%, rgba(255, 255, 255, 0.12) 70%, transparent);
   pointer-events: none;
 }
+
+/* Gold Architectural Brand Atmosphere Motif */
+@keyframes goldAtmosphereBreathe {
+  0% {
+    opacity: 0.42;
+    filter: brightness(0.98);
+  }
+  38% {
+    opacity: 0.78;
+    filter: brightness(1.04);
+  }
+  52% {
+    opacity: 0.82;
+    filter: brightness(1.06);
+  }
+  78% {
+    opacity: 0.52;
+    filter: brightness(1);
+  }
+  100% {
+    opacity: 0.42;
+    filter: brightness(0.98);
+  }
+}
+
+@keyframes goldAtmosphereBreatheLaptop {
+  0% {
+    opacity: 0.21;
+    filter: brightness(0.98);
+  }
+  38% {
+    opacity: 0.39;
+    filter: brightness(1.04);
+  }
+  52% {
+    opacity: 0.41;
+    filter: brightness(1.06);
+  }
+  78% {
+    opacity: 0.26;
+    filter: brightness(1);
+  }
+  100% {
+    opacity: 0.21;
+    filter: brightness(0.98);
+  }
+}
+
+/* Slow architectural reflection shine keyframe - barely perceptible whisper profile capped at 0.05 peak opacity */
+@keyframes goldArchitecturalShine {
+  0% {
+    transform: translateX(-140%);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.018;
+  }
+  28% {
+    opacity: 0.05;
+  }
+  44% {
+    opacity: 0.022;
+  }
+  60% {
+    transform: translateX(140%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(140%);
+    opacity: 0;
+  }
+}
+
+.gold-architectural-motif {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 70% 30%, rgba(251, 191, 36, 0.08) 0%, rgba(217, 119, 6, 0.03) 45%, transparent 75%),
+    linear-gradient(135deg, rgba(254, 249, 195, 0.04) 0%, rgba(251, 191, 36, 0.02) 40%, rgba(217, 119, 6, 0.01) 100%),
+    radial-gradient(circle at 15% 20%, rgba(245, 158, 11, 0.06) 0%, transparent 35%),
+    radial-gradient(circle at 85% 85%, rgba(217, 119, 6, 0.04) 0%, transparent 40%);
+  border: 1px solid rgba(251, 191, 36, 0.14);
+  box-shadow:
+    0 12px 36px -8px rgba(0, 0, 0, 0.6),
+    0 0 40px -10px rgba(245, 158, 11, 0.08),
+    inset 0 1px 0 0 rgba(254, 249, 195, 0.18),
+    inset 0 0 24px rgba(251, 191, 36, 0.03);
+  animation: goldAtmosphereBreathe 20s cubic-bezier(0.45, 0.05, 0.25, 1) infinite;
+  transform: scale(1);
+  transform-origin: center;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.6s ease;
+}
+
+/* Faint, inner-border shadow deepening when the main application enters a 'BLOCK' state */
+.gold-architectural-motif.is-blocked,
+.gold-architectural-motif[data-risk-status="BLOCK"],
+[data-risk-status="BLOCK"] > .gold-architectural-motif {
+  border-color: rgba(239, 68, 68, 0.22);
+  box-shadow:
+    0 12px 36px -8px rgba(0, 0, 0, 0.68),
+    0 0 40px -10px rgba(220, 38, 38, 0.08),
+    inset 0 1px 0 0 rgba(254, 202, 202, 0.2),
+    inset 0 0 0 1px rgba(239, 68, 68, 0.12),
+    inset 0 0 28px rgba(185, 28, 28, 0.06);
+}
+
+/* Subtle scale-up transition (to 1.002) when the .DecisionHero component is hovered */
+:has(.DecisionHero:hover) .gold-architectural-motif,
+:has(> .DecisionHero:hover) > .gold-architectural-motif,
+.DecisionHero:hover ~ .gold-architectural-motif,
+.DecisionHero:hover .gold-architectural-motif,
+.group\/decision-hero:hover .gold-architectural-motif {
+  transform: scale(1.002);
+  box-shadow:
+    0 16px 44px -6px rgba(0, 0, 0, 0.65),
+    0 0 48px -6px rgba(245, 158, 11, 0.13),
+    inset 0 1px 0 0 rgba(254, 249, 195, 0.26),
+    inset 0 0 28px rgba(251, 191, 36, 0.05);
+}
+
+/* Hover combination during BLOCK state */
+:has(.DecisionHero:hover) .gold-architectural-motif.is-blocked,
+:has(.DecisionHero:hover) .gold-architectural-motif[data-risk-status="BLOCK"],
+.DecisionHero:hover ~ .gold-architectural-motif.is-blocked,
+.group\/decision-hero:hover .gold-architectural-motif.is-blocked,
+.group\/decision-hero:hover .gold-architectural-motif[data-risk-status="BLOCK"] {
+  box-shadow:
+    0 16px 44px -6px rgba(0, 0, 0, 0.72),
+    0 0 48px -6px rgba(220, 38, 38, 0.12),
+    inset 0 1px 0 0 rgba(254, 202, 202, 0.26),
+    inset 0 0 0 1px rgba(239, 68, 68, 0.16),
+    inset 0 0 32px rgba(185, 28, 28, 0.08);
+}
+
+/* Responsive scaling: reduce opacity by 50% and scale to 0.8 on laptops */
+@media (min-width: 768px) and (max-width: 1280px) {
+  .gold-architectural-motif {
+    opacity: 0.5;
+    transform: scale(0.8);
+    animation: goldAtmosphereBreatheLaptop 20s cubic-bezier(0.45, 0.05, 0.25, 1) infinite;
+  }
+
+  :has(.DecisionHero:hover) .gold-architectural-motif,
+  :has(> .DecisionHero:hover) > .gold-architectural-motif,
+  .DecisionHero:hover ~ .gold-architectural-motif,
+  .DecisionHero:hover .gold-architectural-motif,
+  .group\/decision-hero:hover .gold-architectural-motif {
+    transform: scale(0.8016);
+  }
+}
+
+/* Hide entirely on screens smaller than 768px (sm breakpoint) to prevent content obstruction */
+@media (max-width: 767px) {
+  .gold-architectural-motif {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gold-architectural-motif,
+  .gold-architectural-motif::after,
+  .gold-architectural-shine {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.gold-architectural-motif::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(254, 249, 195, 0.28) 0%, rgba(251, 191, 36, 0.16) 35%, rgba(217, 119, 6, 0.06) 65%, transparent 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Subtle, extremely low-opacity 45s architectural reflection shine overlay (peak opacity strictly capped at 0.05) */
+.gold-architectural-motif::after,
+.gold-architectural-shine {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(254, 249, 195, 0.008) 45%,
+    rgba(251, 191, 36, 0.025) 48.5%,
+    rgba(254, 249, 195, 0.05) 50%,
+    rgba(251, 191, 36, 0.025) 51.5%,
+    rgba(254, 249, 195, 0.008) 55%,
+    transparent 60%,
+    transparent 100%
+  );
+  transform: translateX(-140%);
+  animation: goldArchitecturalShine 45s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}

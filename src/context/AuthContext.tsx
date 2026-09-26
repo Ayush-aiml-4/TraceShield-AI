@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type UserRole = 'admin' | 'analyst';
+export type SocialProvider = 'google' | 'facebook' | 'github' | 'microsoft';
 
 export interface User {
   id: string;
@@ -9,6 +10,7 @@ export interface User {
   role: UserRole;
   organization: string;
   avatarUrl?: string;
+  provider?: SocialProvider | 'email';
   createdAt: string;
 }
 
@@ -18,6 +20,10 @@ interface AuthContextType {
   customLogoUrl: string | null;
   login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   quickLogin: (role: UserRole) => void;
+  socialLogin: (
+    provider: SocialProvider,
+    accountData?: { name?: string; email?: string; role?: UserRole; organization?: string; avatarUrl?: string }
+  ) => Promise<{ success: boolean; error?: string }>;
   register: (data: { name: string; email: string; organization: string; role: UserRole; password: string }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateCustomLogo: (url: string | null) => void;
@@ -119,6 +125,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(matched);
   };
 
+  const socialLogin = async (
+    provider: SocialProvider,
+    accountData?: { name?: string; email?: string; role?: UserRole; organization?: string; avatarUrl?: string }
+  ): Promise<{ success: boolean; error?: string }> => {
+    // Realistic authentication feedback delay
+    await new Promise((res) => setTimeout(res, 450));
+
+    const providerDefaults: Record<SocialProvider, { name: string; email: string; avatarUrl: string }> = {
+      google: {
+        name: 'Ayush Singh',
+        email: 'ayushsingh556860@gmail.com',
+        avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=250&q=80',
+      },
+      facebook: {
+        name: 'Ayush Singh',
+        email: 'ayushsingh556860@gmail.com',
+        avatarUrl: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=250&q=80',
+      },
+      github: {
+        name: 'ayush-singh',
+        email: 'ayushsingh556860@gmail.com',
+        avatarUrl: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=250&q=80',
+      },
+      microsoft: {
+        name: 'Ayush Singh',
+        email: 'ayushsingh556860@gmail.com',
+        avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80',
+      },
+    };
+
+    const def = providerDefaults[provider];
+    const name = accountData?.name || def.name;
+    const email = accountData?.email || def.email;
+    const role = accountData?.role || 'admin';
+    const organization = accountData?.organization || `${provider.toUpperCase()} Enterprise Verified`;
+    const avatarUrl = accountData?.avatarUrl || def.avatarUrl;
+
+    const newUser: User = {
+      id: `usr-${provider}-${Date.now()}`,
+      name,
+      email,
+      role,
+      organization,
+      avatarUrl,
+      provider,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+
+    setUser(newUser);
+    return { success: true };
+  };
+
   const register = async (data: {
     name: string;
     email: string;
@@ -157,6 +215,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         customLogoUrl,
         login,
         quickLogin,
+        socialLogin,
         register,
         logout,
         updateCustomLogo,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ExecutionBackend, HardwarePlatform } from '../types';
-import { Cpu, Gauge, Terminal, Shield, LogOut, Lock, User as UserIcon, Settings } from 'lucide-react';
+import { Cpu, Gauge, Terminal, Shield, LogOut, Lock, User as UserIcon, Settings, Sparkles } from 'lucide-react';
 import { InfoPopover } from './InfoPopover';
 import { useAuth } from '../context/AuthContext';
 import { TraceShieldLogo } from './TraceShieldLogo';
@@ -17,6 +17,8 @@ interface HeaderProps {
   onNavigateAdmin?: () => void;
   onNavigateLogin?: () => void;
   onNavigateRegister?: () => void;
+  goldAtmosphereEnabled?: boolean;
+  onToggleGoldAtmosphere?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -31,6 +33,8 @@ export const Header: React.FC<HeaderProps> = ({
   onNavigateAdmin,
   onNavigateLogin,
   onNavigateRegister,
+  goldAtmosphereEnabled = true,
+  onToggleGoldAtmosphere,
 }) => {
   const { user, isAuthenticated, logout, customLogoUrl } = useAuth();
 
@@ -109,6 +113,35 @@ export const Header: React.FC<HeaderProps> = ({
               {displayString}
             </span>
           </button>
+
+          {/* Architectural Gold Atmosphere Accessibility Toggle */}
+          {onToggleGoldAtmosphere && (
+            <button
+              type="button"
+              onClick={onToggleGoldAtmosphere}
+              role="switch"
+              aria-checked={goldAtmosphereEnabled}
+              title={`Architectural Gold Atmosphere Motif: ${goldAtmosphereEnabled ? 'Enabled' : 'Disabled'} (Accessibility Control)`}
+              aria-label={`Toggle architectural gold atmosphere motif. Currently ${goldAtmosphereEnabled ? 'enabled' : 'disabled'}`}
+              className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[#B7C0CB] transition-all cursor-pointer ${
+                goldAtmosphereEnabled
+                  ? 'border-amber-400/30 bg-amber-950/25 text-amber-200 hover:bg-amber-950/40 hover:border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.12)]'
+                  : 'border-white/[0.07] bg-[#0D1118]/80 text-[#7D8794] hover:bg-[#141A23] hover:text-[#B7C0CB]'
+              }`}
+            >
+              <Sparkles className={`h-3.5 w-3.5 ${goldAtmosphereEnabled ? 'text-amber-400' : 'text-[#7D8794]'}`} />
+              <span className="hidden xl:inline text-[11px] font-sans">Atmosphere:</span>
+              <span
+                className={`font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                  goldAtmosphereEnabled
+                    ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                    : 'bg-white/5 text-[#7D8794] border border-white/5'
+                }`}
+              >
+                {goldAtmosphereEnabled ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )}
 
           {/* Action Drawers */}
           <button
